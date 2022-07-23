@@ -1,0 +1,26 @@
+{
+  "prettier.enable": true,
+  "prettier.requireConfig": true,
+  "workbench.localHistory.exclude": {
+    "dist/**/*": true,
+    "node_modules/**/*": true
+  },
+  "files.exclude": {
+    "**/.git": false,
+    "**/.svn": false,
+    "**/.hg": false,
+    "**/CVS": false,
+    "**/.DS_Store": false,
+    "**/Thumbs.db": false,
+    "**/dist": false,
+    "**/node_modules": false
+  },
+  "files.watcherExclude": {
+    "**/dist": true,
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    "**/dist": true
+  },
+  "explorerExclude.backup": null,
+}
