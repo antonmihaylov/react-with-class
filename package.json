@@ -10,7 +10,8 @@
   ],
   "packageManager": "pnpm@7.3.0",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "ci": "pnpm run build"
   },
   "keywords": [],
   "author": "antonmmihaylov@gmail.com",
