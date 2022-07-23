@@ -35,7 +35,7 @@ interface WithClassVariantsInput<
   /**
    * Variants definition
    */
-  variants: TVariants
+  variants?: TVariants
 
   /**
    * Variants that will get applied if no variant props are supplied
@@ -127,14 +127,18 @@ type Variants = Record<string, Record<string, ClassValue | Array<ClassValue>> | 
 type Defaults<TV extends Variants> = Partial<VariantPropsNoDefaults<TV>> | undefined
 
 function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
-  variants: TV,
+  variants: TV | undefined,
   defaultVariants?: TD,
 ) {
+  if (!variants) {
+    return (): Array<ClassValue> => []
+  }
+
   function getVariantClasses(
     key: string,
     value: string | boolean | number,
   ): ClassValue | Array<ClassValue> {
-    const variantObj = variants[key]
+    const variantObj = variants?.[key]
 
     if (!variantObj || !isObject(variantObj)) {
       return undefined
