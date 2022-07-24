@@ -104,7 +104,6 @@ function withClass<
   })
 
   wrapped.displayName = typeof component === 'string' ? component : component.displayName
-  Object.assign(wrapped, component)
 
   return wrapped
 }
