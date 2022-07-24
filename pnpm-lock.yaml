@@ -18,6 +18,7 @@ specifiers:
   prettier: ^2.7.1
   react: ^18.2.0
   react-dom: ^18.2.0
+  rimraf: ^3.0.2
   ts-jest: ^28.0.7
   typescript: ^4.7.4
 
@@ -41,6 +42,7 @@ devDependencies:
   prettier: 2.7.1
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
+  rimraf: 3.0.2
   ts-jest: 28.0.7_bi2kohzqnxavgozw3csgny5hju
   typescript: 4.7.4
 
