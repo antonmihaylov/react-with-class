@@ -1,6 +1,6 @@
 {
   "name": "react-with-class",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Utility methods to create primitive components with a set of classes, props or variants",
   "main": "dist/index.js",
   "type": "module",
@@ -9,6 +9,7 @@
     "dist/**/*"
   ],
   "packageManager": "pnpm@7.3.0",
+  "repository": "https://github.com/antomics/react-with-class",
   "scripts": {
     "build": "tsc",
     "lint": "pnpm eslint . && prettier .",

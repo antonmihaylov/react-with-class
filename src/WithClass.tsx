@@ -131,10 +131,7 @@ function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
     return (): Array<ClassValue> => []
   }
 
-  function getVariantClasses(
-    key: string,
-    value: unknown,
-  ): ClassValue | Array<ClassValue> {
+  function getVariantClasses(key: string, value: unknown): ClassValue | Array<ClassValue> {
     const variantObj = variants?.[key]
 
     if (!variantObj || !isObject(variantObj)) {
@@ -150,8 +147,7 @@ function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
   }
 
   const isKeyValuePairValid = (value: unknown, key: string): value is string | number | boolean =>
-    key in variants &&
-    !!getVariantClasses(key, value)
+    key in variants && !!getVariantClasses(key, value)
 
   const pickVariantValues = flow(
     pickBy(isKeyValuePairValid),
@@ -167,7 +163,7 @@ type WrappedProps<
   T extends ComponentOrIntrinsic,
   TVariants extends Variants,
   TDefaults,
-> = PropsWithChildren<Partial<VariantProps<TVariants, TDefaults>> & ExtractProps<T>>
+> = PropsWithChildren<Partial<VariantProps<TVariants, TDefaults> & ExtractProps<T>>>
 
 type VariantPropsNoDefaults<TVariants extends Variants> = {
   [key in keyof TVariants]: 'true' extends keyof TVariants[key]
