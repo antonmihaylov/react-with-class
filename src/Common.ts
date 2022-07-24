@@ -1,13 +1,13 @@
 import type { ClassValue } from 'clsx'
 import isFunction from 'lodash/fp/isFunction'
 import isObject from 'lodash/fp/isObject'
-import type { ComponentProps } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 
 type ComponentOrIntrinsic = React.ComponentType | keyof JSX.IntrinsicElements
 
 type ExtractProps<T extends ComponentOrIntrinsic> = T extends keyof JSX.IntrinsicElements
   ? JSX.IntrinsicElements[T]
-  : ComponentProps<T>
+  : ComponentPropsWithoutRef<T>
 
 type ClassesOrFactory<T extends ComponentOrIntrinsic> =
   | ClassValue

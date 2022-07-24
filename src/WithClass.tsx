@@ -8,12 +8,6 @@ import keys from 'lodash/fp/keys'
 import map from 'lodash/fp/map'
 import omit from 'lodash/fp/omit'
 import pickBy from 'lodash/fp/pickBy'
-import type {
-  ForwardRefExoticComponent,
-  PropsWithChildren,
-  PropsWithoutRef,
-  RefAttributes,
-} from 'react'
 import React, { forwardRef } from 'react'
 
 import { getClassName, evaluateClassesOrFactory } from './Common'
@@ -21,8 +15,8 @@ import type { ClassesOrFactory, ComponentOrIntrinsic, ExtractProps } from './Com
 
 interface WithClassInput<
   T extends ComponentOrIntrinsic,
-  TVariants extends Variants,
-  TDefaults extends Defaults<TVariants>,
+  TVariants extends Variants | undefined,
+  TDefaults extends Defaults<TVariants> | undefined,
 > {
   /**
    * Classes that will always get applied
@@ -74,45 +68,39 @@ interface WithClassInput<
  */
 function withClass<
   T extends ComponentOrIntrinsic,
-  TVariants extends Variants,
-  TDefaults extends Partial<VariantPropsNoDefaults<TVariants>> | undefined,
->(
-  component: T,
-  input: WithClassInput<T, TVariants, TDefaults>,
-): ForwardRefExoticComponent<
-  PropsWithoutRef<WrappedProps<T, TVariants, TDefaults>> & RefAttributes<T>
-> {
+  TVariants extends Variants | undefined = undefined,
+  TDefaults extends Partial<VariantPropsNoDefaults<TVariants>> | undefined = undefined,
+>(component: T, input: WithClassInput<T, TVariants, TDefaults>) {
   const { defaultVariants, variants, otherProps, classes } = input
 
   const Component = component as React.ComponentType
   const cleanupProps = omit(keys(variants))
   const evaluateVariants = evaluateVariantsFactory(variants, defaultVariants)
 
-  const wrapped = forwardRef<T, WrappedProps<T, TVariants, TDefaults>>(
-    ({ children, ...props }, ref) => {
-      const finalProps = { ...otherProps, ...props } as ExtractProps<T>
+  const wrapped = forwardRef<
+    ExtractRefType<T>,
+    Partial<VariantProps<TVariants, TDefaults>> & ExtractProps<T>
+  >((props, ref) => {
+    const finalProps = { ...otherProps, ...props } as ExtractProps<T>
 
-      const className = clsx(
-        getClassName(otherProps),
-        getClassName(props),
-        ...evaluateClassesOrFactory(classes, finalProps),
-        ...evaluateVariants(finalProps as Record<string, unknown>),
-      )
+    const className = clsx(
+      getClassName(otherProps),
+      getClassName(props),
+      ...evaluateClassesOrFactory(classes, finalProps),
+      ...evaluateVariants(finalProps as Record<string, unknown>),
+    )
 
-      const cleanedProps = cleanupProps(finalProps)
+    const cleanedProps = cleanupProps(finalProps)
 
-      return (
-        <Component
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          {...(cleanedProps as any)}
-          className={className}
-          ref={ref}
-        >
-          {children}
-        </Component>
-      )
-    },
-  )
+    return (
+      <Component
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        {...(cleanedProps as any)}
+        className={className}
+        ref={ref}
+      />
+    )
+  })
 
   wrapped.displayName = typeof component === 'string' ? component : component.displayName
   Object.assign(wrapped, component)
@@ -121,7 +109,7 @@ function withClass<
 }
 
 type Variants = Record<string, Record<string, ClassValue | Array<ClassValue>> | undefined>
-type Defaults<TV extends Variants> = Partial<VariantPropsNoDefaults<TV>> | undefined
+type Defaults<TV extends Variants | undefined> = Partial<VariantPropsNoDefaults<TV>> | undefined
 
 function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
   variants: TV | undefined,
@@ -159,32 +147,43 @@ function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
   return (props: Record<string, unknown>): Array<ClassValue> => pickVariantValues(props)
 }
 
-type WrappedProps<
-  T extends ComponentOrIntrinsic,
-  TVariants extends Variants,
-  TDefaults,
-> = PropsWithChildren<Partial<VariantProps<TVariants, TDefaults> & ExtractProps<T>>>
+type ExtractRefType<T extends ComponentOrIntrinsic> = T extends keyof JSX.IntrinsicElements
+  ? JSX.IntrinsicElements[T] extends React.DetailedHTMLProps<
+      React.AnchorHTMLAttributes<infer R>,
+      unknown
+    >
+    ? R
+    : never
+  : unknown
 
-type VariantPropsNoDefaults<TVariants extends Variants> = {
-  [key in keyof TVariants]: 'true' extends keyof TVariants[key]
-    ? boolean
-    : 'false' extends keyof TVariants[key]
-    ? boolean
-    : keyof TVariants[key]
-}
+type VariantPropsNoDefaults<TVariants extends Variants | undefined> = TVariants extends
+  | undefined
+  | never
+  ? // eslint-disable-next-line @typescript-eslint/ban-types
+    {}
+  : {
+      [key in keyof TVariants]: 'true' extends keyof TVariants[key]
+        ? boolean
+        : 'false' extends keyof TVariants[key]
+        ? boolean
+        : keyof TVariants[key]
+    }
 
 type VariantProps<
-  TVariants extends Variants,
-  TDefaults extends Partial<VariantPropsNoDefaults<TVariants>> | undefined,
-> = {
-  [key in keyof TDefaults &
-    keyof VariantPropsNoDefaults<TVariants>]?: VariantPropsNoDefaults<TVariants>[key]
-} & {
-  [key in Exclude<
-    keyof VariantPropsNoDefaults<TVariants>,
-    keyof TDefaults
-  >]: VariantPropsNoDefaults<TVariants>[key]
-}
+  TVariants extends Variants | undefined = undefined,
+  TDefaults extends Partial<VariantPropsNoDefaults<TVariants>> | undefined = undefined,
+> = TVariants extends undefined | never
+  ? // eslint-disable-next-line @typescript-eslint/ban-types
+    {}
+  : {
+      [key in keyof TDefaults &
+        keyof VariantPropsNoDefaults<TVariants>]?: VariantPropsNoDefaults<TVariants>[key]
+    } & {
+      [key in Exclude<
+        keyof VariantPropsNoDefaults<TVariants>,
+        keyof TDefaults
+      >]: VariantPropsNoDefaults<TVariants>[key]
+    }
 
-export type { WrappedProps, WithClassInput, Variants, Defaults }
+export type { WithClassInput, Variants, Defaults }
 export { withClass }
