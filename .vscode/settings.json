@@ -22,5 +22,7 @@
   "search.exclude": {
     "**/dist": true
   },
-  "explorerExclude.backup": null
+  "explorerExclude.backup": null,
+  "eslint.packageManager": "pnpm",
+  "npm.packageManager": "pnpm"
 }

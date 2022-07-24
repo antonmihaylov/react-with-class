@@ -3,10 +3,7 @@ import clsx from 'clsx'
 import defaults from 'lodash/fp/defaults'
 import entries from 'lodash/fp/entries'
 import flow from 'lodash/fp/flow'
-import isBoolean from 'lodash/fp/isBoolean'
-import isNumber from 'lodash/fp/isNumber'
 import isObject from 'lodash/fp/isObject'
-import isString from 'lodash/fp/isString'
 import keys from 'lodash/fp/keys'
 import map from 'lodash/fp/map'
 import omit from 'lodash/fp/omit'
@@ -22,7 +19,7 @@ import React, { forwardRef } from 'react'
 import { getClassName, evaluateClassesOrFactory } from './Common'
 import type { ClassesOrFactory, ComponentOrIntrinsic, ExtractProps } from './Common'
 
-interface WithClassVariantsInput<
+interface WithClassInput<
   T extends ComponentOrIntrinsic,
   TVariants extends Variants,
   TDefaults extends Defaults<TVariants>,
@@ -54,7 +51,7 @@ interface WithClassVariantsInput<
  * the ref is forwarded and you can supply other default props to the component.
  *
  * @example
- * const Action = withClassVariants('button', {
+ * const Action = withClass('button', {
  *  classes: 'button flex-1',
  *  variants: {
  *    color: {
@@ -81,7 +78,7 @@ function withClass<
   TDefaults extends Partial<VariantPropsNoDefaults<TVariants>> | undefined,
 >(
   component: T,
-  input: WithClassVariantsInput<T, TVariants, TDefaults>,
+  input: WithClassInput<T, TVariants, TDefaults>,
 ): ForwardRefExoticComponent<
   PropsWithoutRef<WrappedProps<T, TVariants, TDefaults>> & RefAttributes<T>
 > {
@@ -136,7 +133,7 @@ function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
 
   function getVariantClasses(
     key: string,
-    value: string | boolean | number,
+    value: unknown,
   ): ClassValue | Array<ClassValue> {
     const variantObj = variants?.[key]
 
@@ -154,7 +151,6 @@ function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
 
   const isKeyValuePairValid = (value: unknown, key: string): value is string | number | boolean =>
     key in variants &&
-    (isBoolean(value) || isString(value) || isNumber(value)) &&
     !!getVariantClasses(key, value)
 
   const pickVariantValues = flow(
@@ -171,7 +167,7 @@ type WrappedProps<
   T extends ComponentOrIntrinsic,
   TVariants extends Variants,
   TDefaults,
-> = PropsWithChildren<VariantProps<TVariants, TDefaults> & ExtractProps<T>>
+> = PropsWithChildren<Partial<VariantProps<TVariants, TDefaults>> & ExtractProps<T>>
 
 type VariantPropsNoDefaults<TVariants extends Variants> = {
   [key in keyof TVariants]: 'true' extends keyof TVariants[key]
@@ -194,5 +190,5 @@ type VariantProps<
   >]: VariantPropsNoDefaults<TVariants>[key]
 }
 
-export type { WrappedProps, WithClassVariantsInput, Variants, Defaults }
+export type { WrappedProps, WithClassInput, Variants, Defaults }
 export { withClass }

@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "ESNext"
+    ],
+    "types": [
+      "jest",
+    ],
+    "rootDir": "../",
+    "isolatedModules": false
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ]
+}

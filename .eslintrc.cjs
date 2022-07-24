@@ -8,6 +8,15 @@ const config = {
   rules: {
     'unicorn/filename-case': 'off',
   },
+  overrides: [
+    {
+      files: 'test/**/*',
+      extends: ['plugin:jest/recommended'],
+      parserOptions: {
+        project: './test/tsconfig.json',
+      },
+    },
+  ],
 }
 
 // eslint-disable-next-line no-undef
