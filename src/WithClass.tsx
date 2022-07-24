@@ -10,8 +10,8 @@ import omit from 'lodash/fp/omit'
 import pickBy from 'lodash/fp/pickBy'
 import React, { forwardRef } from 'react'
 
-import { getClassName, evaluateClassesOrFactory } from './Common'
-import type { ClassesOrFactory, ComponentOrIntrinsic, ExtractProps } from './Common'
+import { getClassName, evaluateClassesOrFactory, evaluatePropsOrFactory } from './Common'
+import type { ClassesOrFactory, ComponentOrIntrinsic, ExtractProps, PropsOrFactory } from './Common'
 
 interface WithClassInput<
   T extends ComponentOrIntrinsic,
@@ -36,7 +36,7 @@ interface WithClassInput<
   /**
    * Other props that will get passed down to the component by default
    */
-  otherProps?: ExtractProps<T>
+  otherProps?: PropsOrFactory<ExtractProps<T>>
 }
 
 /**
@@ -71,7 +71,7 @@ function withClass<
   TVariants extends Variants | undefined = undefined,
   TDefaults extends Partial<VariantPropsNoDefaults<TVariants>> | undefined = undefined,
 >(component: T, input: WithClassInput<T, TVariants, TDefaults>) {
-  const { defaultVariants, variants, otherProps, classes } = input
+  const { defaultVariants, variants, otherProps: otherPropsOrFactory, classes } = input
 
   const Component = component as React.ComponentType
   const cleanupProps = omit(keys(variants))
@@ -81,6 +81,7 @@ function withClass<
     ExtractRefType<T>,
     Partial<VariantProps<TVariants, TDefaults>> & ExtractProps<T>
   >((props, ref) => {
+    const otherProps = otherPropsOrFactory ? evaluatePropsOrFactory(otherPropsOrFactory, props) : {}
     const finalProps = { ...otherProps, ...props } as ExtractProps<T>
 
     const className = clsx(

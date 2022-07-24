@@ -85,6 +85,35 @@ describe('With Class', () => {
     const btn = screen.getByRole('button')
     expect(btn).toHaveTextContent('Hello world')
   })
+
+  it('Should render other props', () => {
+    render(<Action>Hello</Action>)
+
+    const btn = screen.getByRole('button')
+    expect(btn).toHaveAttribute('type', 'button')
+  })
+
+  it('Should render other props with a factory', () => {
+    const ActionWithIcon = withClass('button', {
+      otherProps: (props) => ({ children: props.children ?? <span>Pretend this is an icon</span> }),
+    })
+
+    render(<ActionWithIcon />)
+
+    const btn = screen.getByRole('button')
+    expect(btn).toHaveTextContent('Pretend this is an icon')
+  })
+
+  it('Should override the default props factory', () => {
+    const ActionWithIcon = withClass('button', {
+      otherProps: (props) => ({ children: props.children ?? <span>Pretend this is an icon</span> }),
+    })
+
+    render(<ActionWithIcon>Not icon</ActionWithIcon>)
+
+    const btn = screen.getByRole('button')
+    expect(btn).toHaveTextContent('Not icon')
+  })
 })
 
 function createActionComponent() {
@@ -101,5 +130,8 @@ function createActionComponent() {
       },
     },
     defaultVariants: { color: 'primary' },
+    otherProps: {
+      type: 'button',
+    },
   })
 }

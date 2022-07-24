@@ -14,6 +14,8 @@ type ClassesOrFactory<T extends ComponentOrIntrinsic> =
   | Array<ClassValue>
   | ((props: ExtractProps<T>) => ClassValue | Array<ClassValue>)
 
+type PropsOrFactory<P> = ((props: P) => P) | P
+
 function getClassName(obj: unknown) {
   return isObject(obj) && 'className' in obj
     ? (obj as { className?: ClassValue }).className
@@ -28,5 +30,9 @@ function evaluateClassesOrFactory<T extends ComponentOrIntrinsic>(
   return Array.isArray(arrayOrClasses) ? arrayOrClasses : [arrayOrClasses]
 }
 
-export type { ClassesOrFactory, ComponentOrIntrinsic, ExtractProps }
-export { getClassName, evaluateClassesOrFactory }
+function evaluatePropsOrFactory<P>(propsOrFactory: PropsOrFactory<P>, allProps: P): P {
+  return isFunction(propsOrFactory) ? propsOrFactory(allProps) : propsOrFactory
+}
+
+export type { ClassesOrFactory, ComponentOrIntrinsic, ExtractProps, PropsOrFactory }
+export { getClassName, evaluateClassesOrFactory, evaluatePropsOrFactory }
