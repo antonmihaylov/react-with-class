@@ -1,6 +1,6 @@
 {
   "name": "react-with-class",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Utility methods to create primitive components with a set of classes, props or variants",
   "main": "cjs/index.js",
   "module": "dist/index.js",

@@ -262,5 +262,5 @@ type VariantProps<
       >]: VariantPropsNoDefaults<TVariants>[key]
     }
 
-export type { WithClassInput, Variants, Defaults }
+export type { WithClassInput, Variants, Defaults, CompoundVariants, CompoundVariant }
 export { withClass }
