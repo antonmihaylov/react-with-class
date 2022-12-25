@@ -29,6 +29,19 @@ interface WithClassInput<
   variants?: TVariants
 
   /**
+   * Classes that will get applied only if all the specified variants are set.
+   * @example To add `text-red-600` when `color` is `danger` and `isGhost` is `true`:
+   * compoundVariants: [
+   *  {
+   *    color: 'danger',
+   *    isGhost: true,
+   *    className: 'text-red-600'
+   *  }
+   * ]
+   */
+  compoundVariants?: CompoundVariants<TVariants>
+
+  /**
    * Variants that will get applied if no variant props are supplied
    */
   defaultVariants?: TDefaults
@@ -42,7 +55,7 @@ interface WithClassInput<
 /**
  * Wraps a component and allows conditionally setting different sets of classes depending on a prop.
  * Additionally, all other props are forwarded, and the className from the props is combined with the rest,
- * the ref is forwarded and you can supply other default props to the component.
+ * the ref is forwarded, and you can supply other default props to the component.
  *
  * @example
  * const Action = withClass('button', {
@@ -57,6 +70,13 @@ interface WithClassInput<
  *      true: 'opacity-50'
  *    }
  *  },
+ *  compoundVariants: [
+ *     {
+ *       color: 'danger',
+ *       isGhost: true,
+ *       className: 'text-red-600'
+ *     }
+ *  ],
  *  defaultVariants: { color: 'primary', },
  * })
  * ...
@@ -71,11 +91,21 @@ function withClass<
   TVariants extends Variants | undefined = undefined,
   TDefaults extends Partial<VariantPropsNoDefaults<TVariants>> | undefined = undefined,
 >(component: T, input: WithClassInput<T, TVariants, TDefaults>) {
-  const { defaultVariants, variants, otherProps: otherPropsOrFactory, classes } = input
+  const {
+    defaultVariants,
+    variants,
+    otherProps: otherPropsOrFactory,
+    classes,
+    compoundVariants,
+  } = input
 
   const Component = component as React.ComponentType
   const cleanupProps = omit(keys(variants))
   const evaluateVariants = evaluateVariantsFactory(variants, defaultVariants)
+  const evaluateCompoundVariants = evaluateCompoundVariantsFactory(
+    compoundVariants,
+    defaultVariants,
+  )
 
   const wrapped = forwardRef<
     ExtractRefType<T>,
@@ -89,6 +119,7 @@ function withClass<
       getClassName(props),
       ...evaluateClassesOrFactory(classes, finalProps),
       ...evaluateVariants(finalProps as Record<string, unknown>),
+      ...evaluateCompoundVariants(finalProps as Record<string, unknown>),
     )
 
     const cleanedProps = cleanupProps(finalProps)
@@ -110,6 +141,8 @@ function withClass<
 
 type Variants = Record<string, Record<string, ClassValue | Array<ClassValue>> | undefined>
 type Defaults<TV extends Variants | undefined> = Partial<VariantPropsNoDefaults<TV>> | undefined
+type CompoundVariant<TV extends Variants | undefined> = Defaults<TV> & { className?: ClassValue }
+type CompoundVariants<TV extends Variants | undefined> = Array<CompoundVariant<TV>>
 
 function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
   variants: TV | undefined,
@@ -134,8 +167,13 @@ function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
     return variantObj[String(value)]
   }
 
-  const isKeyValuePairValid = (value: unknown, key: string): value is string | number | boolean =>
-    key in variants && !!getVariantClasses(key, value)
+  const isKeyValuePairValid = (value: unknown, key: string): value is string | number | boolean => {
+    if (!(key in variants)) {
+      return false
+    }
+    const classes = getVariantClasses(key, value)
+    return classes !== undefined && classes !== null
+  }
 
   const pickVariantValues = flow(
     pickBy(isKeyValuePairValid),
@@ -145,6 +183,45 @@ function evaluateVariantsFactory<TV extends Variants, TD extends Defaults<TV>>(
   )
 
   return (props: Record<string, unknown>): Array<ClassValue> => pickVariantValues(props)
+}
+
+function isCompoundMatch(key: string, value: unknown, props: Record<string, unknown>) {
+  if (key === 'className') {
+    return false
+  }
+
+  if (value === true) {
+    return !!props[key]
+  }
+
+  if (value === false) {
+    return !props[key]
+  }
+
+  return props[key] === value
+}
+
+function evaluateCompoundVariantsFactory<TV extends Variants>(
+  compoundVariants: CompoundVariants<TV> | undefined,
+  defaultVariants?: Defaults<TV>,
+) {
+  if (!compoundVariants) {
+    return (): Array<ClassValue> => []
+  }
+
+  const getMatches = (props: Record<string, unknown>) =>
+    compoundVariants.filter((cv) =>
+      Object.entries(cv).every(
+        ([key, value]) => key === 'className' || isCompoundMatch(key, value, props),
+      ),
+    )
+
+  const withDefaults = defaults(defaultVariants ?? {})
+
+  return (props: Record<string, unknown>): Array<ClassValue> => {
+    const matches = getMatches(withDefaults(props))
+    return matches.map((cv) => cv.className)
+  }
 }
 
 type ExtractRefType<T extends ComponentOrIntrinsic> = T extends keyof JSX.IntrinsicElements
