@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import type { PropsWithChildren, ReactNode } from 'react'
 import React from 'react'
 import '@testing-library/jest-dom'
 
@@ -152,6 +152,29 @@ describe('With Class', () => {
       expect(btn).toHaveClass('button text-white bg-indigo-300', { exact: true })
     })
   })
+
+  describe('Custom components', () => {
+    let Action: ReturnType<typeof createWithCustomComponent>
+    beforeAll(() => {
+      Action = createWithCustomComponent()
+    })
+
+    it('should render the custom component', () => {
+      render(
+        <Action
+          onClick={() => {
+            // do nothing
+          }}
+        >
+          Hello
+        </Action>,
+      )
+
+      const btn = screen.getByRole('button')
+
+      expect(btn).toHaveTextContent('Hello')
+    })
+  })
 })
 
 function createActionComponent() {
@@ -197,6 +220,20 @@ function createActionComponentWithCompoundVariants() {
     defaultVariants: { color: 'primary', variant: 'none' },
     otherProps: {
       type: 'button',
+    },
+  })
+}
+
+function createWithCustomComponent() {
+  const Button = (props: PropsWithChildren<{ onClick: () => void }>) => <button {...props} />
+
+  return withClass(Button, {
+    classes: 'button',
+    variants: {
+      color: {
+        danger: 'bg-red-600',
+        primary: 'bg-indigo-600',
+      },
     },
   })
 }
