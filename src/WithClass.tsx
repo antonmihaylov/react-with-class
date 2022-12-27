@@ -49,7 +49,10 @@ interface WithClassInput<
   /**
    * Other props that will get passed down to the component by default
    */
-  otherProps?: PropsOrFactory<ExtractProps<T>>
+  otherProps?: PropsOrFactory<
+    ExtractProps<T>,
+    Partial<VariantProps<TVariants, TDefaults>> & ExtractProps<T>
+  >
 
   /**
    * Props that won't get passed down to the component, but will be available in the factories
