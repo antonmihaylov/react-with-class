@@ -50,6 +50,11 @@ interface WithClassInput<
    * Other props that will get passed down to the component by default
    */
   otherProps?: PropsOrFactory<ExtractProps<T>>
+
+  /**
+   * Props that won't get passed down to the component, but will be available in the factories
+   */
+  excludedProps?: Array<keyof ExtractProps<T>>
 }
 
 /**
@@ -97,10 +102,11 @@ function withClass<
     otherProps: otherPropsOrFactory,
     classes,
     compoundVariants,
+    excludedProps,
   } = input
 
   const Component = component as React.ComponentType
-  const cleanupProps = omit(keys(variants))
+  const cleanupProps = omit([...keys(variants), ...(excludedProps ?? [])])
   const evaluateVariants = evaluateVariantsFactory(variants, defaultVariants)
   const evaluateCompoundVariants = evaluateCompoundVariantsFactory(
     compoundVariants,
